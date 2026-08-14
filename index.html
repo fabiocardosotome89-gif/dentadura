@@ -17,8 +17,9 @@
 </div>
 
 <script>
-const CHAVE_PIX = "21987841137"; // <-- SUA CHAVE AQUI (celular, CPF, email)
-const NOME_PIX = "Fábio";
+// Incluído +55 exigido para chaves do tipo Telefone
+const CHAVE_PIX = "+5521987841137"; 
+const NOME_PIX = "FABIO";
 const CIDADE_PIX = "DUQUE DE CAXIAS";
 
 // CALCULA O CRC16 QUE O BANCO EXIGE
@@ -36,11 +37,15 @@ function crc16(payload) {
 }
 
 function gerarPix(chave, valor, nome, cidade) {
-  const valorFmt = parseFloat(valor).toFixed(2);
+  // Garante tratamento de vírgula/ponto para o parseFloat
+  const valorNum = typeof valor === 'string' ? parseFloat(valor.replace(',', '.')) : valor;
+  const valorFmt = valorNum.toFixed(2);
+
   function campo(id, val) {
     const tam = val.length.toString().padStart(2, '0');
     return id + tam + val;
   }
+
   const pix = campo("00", "01") + 
               campo("26", campo("00", "BR.GOV.BCB.PIX") + campo("01", chave)) +
               campo("52", "0000") +
