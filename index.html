@@ -1,17 +1,57 @@
-
 <!DOCTYPE html><html><head><meta charset='UTF-8'><script src='https://cdn.tailwindcss.com'></script></head><body class='bg-gray-100 p-4'>
 <h1 class='text-3xl font-bold text-center'>🦷 Mostruário de Dentaduras</h1>
 <div class='text-center my-4 flex justify-center gap-2'><a href='/cliente.html' class='bg-blue-600 text-white px-6 py-2 rounded-full'>👤 Área Cliente</a><a href='/admin.html' class='bg-black text-white px-6 py-2 rounded-full'>🔧 Admin</a></div>
 <div id='grid' class='grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto'></div>
+
+<!-- MODAL PIX -->
+<div id="pixModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
+    <h2 class="text-xl font-bold">💰 Pague com PIX</h2>
+    <p id="pixValor" class="text-green-600 font-bold text-2xl mt-2"></p>
+    <img id="qrPix" src="" class="mx-auto mt-3 w-56 h-56 border p-2 bg-white rounded-xl">
+    <p class="text-xs mt-2">Chave: <span id="pixChaveTxt"></span></p>
+    <p class="text-xs text-gray-500 mt-1">Escaneie no app do banco</p>
+    <button onclick="copiarPix()" class="mt-3 bg-green-600 text-white px-6 py-2 rounded-full w-full">📋 Copiar código PIX</button>
+    <button onclick="fecharPix()" class="mt-2 bg-gray-100 px-6 py-2 rounded-full w-full">Depois vou em Área Cliente</button>
+  </div>
+</div>
+
 <script>
+const CHAVE_PIX = "21999999999"; // <-- TROQUE PELA SUA CHAVE PIX AQUI
+const NOME_PIX = "FABIO PROTETICO";
+const CIDADE_PIX = "DUQUE DE CAXIAS";
+
 fetch('/api/produtos').then(r=>r.json()).then(prods=>{
-  grid.innerHTML=prods.map(p=>`<div class='bg-white p-4 rounded-xl shadow'><img src='${p.foto}' class='w-full h-48 object-cover rounded'><h3 class='font-bold mt-2'>${p.nome}</h3><p class='text-sm text-gray-500'>${p.descricao}</p><p class='text-green-600 font-bold text-xl'>R$ ${p.preco_final}</p><p class='text-xs text-gray-400'>Base R$ ${p.preco_base} + extras</p><button onclick='comprar(${p.id})' class='bg-blue-600 text-white w-full py-2 rounded mt-2'>Comprar Prótese</button></div>`).join('');
+  grid.innerHTML=prods.map(p=>`<div class='bg-white p-4 rounded-xl shadow'><img src='${p.foto}' class='w-full h-48 object-cover rounded'><h3 class='font-bold mt-2'>${p.nome}</h3><p class='text-sm text-gray-500'>${p.descricao}</p><p class='text-green-600 font-bold text-xl'>R$ ${p.preco_final}</p><p class='text-xs text-gray-400'>Base R$ ${p.preco_base} + extras</p><button onclick='comprar(${p.id}, ${p.preco_final})' class='bg-blue-600 text-white w-full py-2 rounded mt-2'>Comprar Prótese</button></div>`).join('');
 });
-function comprar(id){
-  const nome=prompt('Seu nome:'); const tel=prompt('Seu WhatsApp:');
+
+let codigoPixAtual = "";
+
+function comprar(id, preco){
+  const nome=prompt('Seu nome:'); 
+  const tel=prompt('Seu WhatsApp:');
   if(!nome) return;
   fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cliente:nome,telefone:tel,produto_id:id})}).then(r=>r.json()).then(d=>{
-    alert('Compra feita! Valor final R$ '+d.preco+'. Agora vá na Área do Cliente pra marcar molde/mordida/prova/entrega'); location.href='/cliente.html';
+    mostrarPix(d.preco || preco);
   });
+}
+
+function mostrarPix(valor){
+  document.getElementById('pixValor').innerText = `R$ ${valor}`;
+  document.getElementById('pixChaveTxt').innerText = CHAVE_PIX;
+  // payload pix simples + qr via api gratuita
+  codigoPixAtual = `00020126360014BR.GOV.BCB.PIX0114${CHAVE_PIX}520400005303986540${valor}.005802BR5913${NOME_PIX}6009${CIDADE_PIX}62070503***6304`;
+  let qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(codigoPixAtual)}`;
+  document.getElementById('qrPix').src = qrUrl;
+  document.getElementById('pixModal').classList.remove('hidden');
+}
+
+function copiarPix(){
+  navigator.clipboard.writeText(codigoPixAtual);
+  alert('Código PIX copiado! Cola no seu banco.');
+}
+function fecharPix(){
+  document.getElementById('pixModal').classList.add('hidden');
+  location.href='/cliente.html';
 }
 </script></body></html>
