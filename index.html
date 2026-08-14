@@ -1,0 +1,17 @@
+
+<!DOCTYPE html><html><head><meta charset='UTF-8'><script src='https://cdn.tailwindcss.com'></script></head><body class='bg-gray-100 p-4'>
+<h1 class='text-3xl font-bold text-center'>🦷 Mostruário de Dentaduras</h1>
+<div class='text-center my-4 flex justify-center gap-2'><a href='/cliente.html' class='bg-blue-600 text-white px-6 py-2 rounded-full'>👤 Área Cliente</a><a href='/admin.html' class='bg-black text-white px-6 py-2 rounded-full'>🔧 Admin</a></div>
+<div id='grid' class='grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto'></div>
+<script>
+fetch('/api/produtos').then(r=>r.json()).then(prods=>{
+  grid.innerHTML=prods.map(p=>`<div class='bg-white p-4 rounded-xl shadow'><img src='${p.foto}' class='w-full h-48 object-cover rounded'><h3 class='font-bold mt-2'>${p.nome}</h3><p class='text-sm text-gray-500'>${p.descricao}</p><p class='text-green-600 font-bold text-xl'>R$ ${p.preco_final}</p><p class='text-xs text-gray-400'>Base R$ ${p.preco_base} + extras</p><button onclick='comprar(${p.id})' class='bg-blue-600 text-white w-full py-2 rounded mt-2'>Comprar Prótese</button></div>`).join('');
+});
+function comprar(id){
+  const nome=prompt('Seu nome:'); const tel=prompt('Seu WhatsApp:');
+  if(!nome) return;
+  fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cliente:nome,telefone:tel,produto_id:id})}).then(r=>r.json()).then(d=>{
+    alert('Compra feita! Valor final R$ '+d.preco+'. Agora vá na Área do Cliente pra marcar molde/mordida/prova/entrega'); location.href='/cliente.html';
+  });
+}
+</script></body></html>

@@ -1,0 +1,37 @@
+
+<!DOCTYPE html><html><head><meta charset='UTF-8'><script src='https://cdn.tailwindcss.com'></script></head><body class='bg-blue-50 min-h-screen p-6'>
+<div class='max-w-3xl mx-auto'>
+<h1 class='text-3xl font-bold text-center'>👤 Área do Cliente</h1>
+<div class='bg-white p-4 rounded-xl shadow mt-4 flex gap-2'><input id='busca' placeholder='Digite seu nome' class='border p-3 w-full rounded-full'><button onclick='buscar()' class='bg-blue-600 text-white px-6 rounded-full'>Entrar</button></div>
+<div id='area' class='hidden mt-6 space-y-4'></div>
+</div>
+<script>
+let venda_atual=null;
+function buscar(){
+  fetch('/api/vendas?cliente='+busca.value).then(r=>r.json()).then(vendas=>{
+    if(vendas.length==0) return alert('Nenhuma compra encontrada');
+    venda_atual=vendas[0];
+    area.classList.remove('hidden');
+    area.innerHTML=`<div class='bg-white p-4 rounded-xl shadow'><h2 class='font-bold'>Olá ${venda_atual.cliente} - ${venda_atual.produto_nome} - R$ ${venda_atual.preco_final}</h2>
+    <div class='grid grid-cols-2 md:grid-cols-4 gap-2 mt-4'>
+      <button onclick='agendar("molde")' class='bg-orange-100 border border-orange-300 p-3 rounded-xl'>🧱<br>Molde</button>
+      <button onclick='agendar("mordida")' class='bg-purple-100 border border-purple-300 p-3 rounded-xl'>🦷<br>Mordida</button>
+      <button onclick='agendar("prova com dente")' class='bg-yellow-100 border border-yellow-300 p-3 rounded-xl'>😁<br>Prova com Dente</button>
+      <button onclick='agendar("entrega")' class='bg-green-100 border border-green-300 p-3 rounded-xl'>✅<br>Entrega</button>
+    </div>
+    <div id='etapas' class='mt-6'></div>
+    </div>`;
+    carregarEtapas();
+  });
+}
+function agendar(tipo){
+  const data=prompt('Data do '+tipo+' (AAAA-MM-DD)'); const hora=prompt('Hora (HH:MM)');
+  if(!data) return;
+  fetch('/api/etapas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({venda_id:venda_atual.id,tipo,data,hora})}).then(()=>carregarEtapas());
+}
+function carregarEtapas(){
+  fetch('/api/etapas?venda_id='+venda_atual.id).then(r=>r.json()).then(etapas=>{
+    document.getElementById('etapas').innerHTML = '<h3 class="font-bold mt-2">Meus Horários Marcados</h3>' + etapas.map(e=>`<div class='flex justify-between border-b py-2'><span class='font-bold capitalize'>${e.tipo}</span><span>📅 ${e.data} ⏰ ${e.hora}</span></div>`).join('') + (etapas.length==0?'<p class=text-gray-500>Nenhum horário ainda</p>':'');
+  });
+}
+</script></body></html>

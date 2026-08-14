@@ -1,0 +1,33 @@
+
+<!DOCTYPE html><html><head><meta charset='UTF-8'><script src='https://cdn.tailwindcss.com'></script></head><body class='bg-gray-900 text-white min-h-screen p-6'>
+<div class='max-w-6xl mx-auto'>
+<h1 class='text-3xl font-bold'>🔧 Admin - Galeria e Preços</h1>
+<a href='/' class='underline'>Mostruário</a>
+<div class='grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+<div class='bg-white text-black p-4 rounded-xl'>
+<h2 class='font-bold'>Produtos / Editar Preço (R$800 -> sobe)</h2>
+<div id='prods' class='mt-2 space-y-2'></div>
+<h3 class='font-bold mt-6'>Adicionar Nova Foto na Galeria</h3>
+<input id='n_nome' placeholder='Nome' class='border p-2 w-full rounded mt-1'><input id='n_preco_base' placeholder='Preço base 800' type='number' class='border p-2 w-full rounded mt-1'><input id='n_preco_final' placeholder='Preço final atual' type='number' class='border p-2 w-full rounded mt-1'><input id='n_foto' placeholder='Link foto' class='border p-2 w-full rounded mt-1'><input id='n_desc' placeholder='Descricao' class='border p-2 w-full rounded mt-1'><button onclick='addProd()' class='bg-black text-white w-full py-2 rounded mt-2'>Adicionar</button>
+</div>
+<div class='bg-white text-black p-4 rounded-xl'>
+<h2 class='font-bold'>Vendas e Provas do Cliente</h2>
+<div id='vendas' class='mt-2'></div>
+</div>
+</div>
+</div>
+<script>
+function loadProds(){
+  fetch('/api/produtos').then(r=>r.json()).then(p=>{
+    prods.innerHTML=p.map(prod=>`<div class='border p-2 rounded flex gap-2'><img src='${prod.foto}' class='w-16 h-16 object-cover rounded'><div class='flex-1'><p class='font-bold'>${prod.nome}</p><p class='text-sm'>Base R$ ${prod.preco_base} | Final R$ <input id='pf_${prod.id}' value='${prod.preco_final}' class='border w-20'> <button onclick='salvarPreco(${prod.id})' class='bg-green-600 text-white px-2 rounded'>Salvar Preço</button></p><input id='foto_${prod.id}' value='${prod.foto}' class='border w-full text-xs mt-1' placeholder='link foto'><button onclick='salvarFoto(${prod.id})' class='text-xs bg-blue-600 text-white px-2 rounded mt-1'>Atualizar Foto Galeria</button></div></div>`).join('');
+  });
+  fetch('/api/vendas').then(r=>r.json()).then(v=>{
+    vendas.innerHTML=v.map(venda=>`<div class='border p-2 rounded mb-2'><p class='font-bold'>${venda.cliente} - ${venda.produto_nome} - R$ ${venda.preco_final}</p><div id='et_${venda.id}'></div><button onclick='loadEt(${venda.id})' class='text-xs underline'>Ver etapas molde/mordida/prova/entrega</button></div>`).join('');
+  });
+}
+function salvarPreco(id){ fetch('/api/produtos',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,preco_final:document.getElementById('pf_'+id).value,foto:document.getElementById('foto_'+id).value,descricao:'atualizado'})}).then(()=>{alert('Preço atualizado! R$800 virou R$ '+document.getElementById('pf_'+id).value); loadProds();}); }
+function salvarFoto(id){ salvarPreco(id); }
+function addProd(){ fetch('/api/produtos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:n_nome.value,preco_base:n_preco_base.value,preco_final:n_preco_final.value,foto:n_foto.value,descricao:n_desc.value})}).then(()=>loadProds()); }
+function loadEt(id){ fetch('/api/etapas?venda_id='+id).then(r=>r.json()).then(e=>{ document.getElementById('et_'+id).innerHTML=e.map(x=>`<p class='text-xs'>${x.tipo} - ${x.data} ${x.hora}</p>`).join('') }); }
+loadProds();
+</script></body></html>
