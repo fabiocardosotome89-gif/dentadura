@@ -17,16 +17,50 @@
 </div>
 
 <script>
-const CHAVE_PIX = "21987841137"; // <-- TROQUE PELA SUA CHAVE PIX AQUI
-const NOME_PIX = "FABIO";
+const CHAVE_PIX = "21999999999"; // <-- SUA CHAVE AQUI (celular, CPF, email)
+const NOME_PIX = "FABIO PROTETICO";
 const CIDADE_PIX = "DUQUE DE CAXIAS";
+
+// CALCULA O CRC16 QUE O BANCO EXIGE
+function crc16(payload) {
+  let polinomio = 0x1021;
+  let resultado = 0xFFFF;
+  for (let i = 0; i < payload.length; i++) {
+    resultado ^= payload.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      if ((resultado <<= 1) & 0x10000) resultado ^= polinomio;
+      resultado &= 0xFFFF;
+    }
+  }
+  return resultado.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function gerarPix(chave, valor, nome, cidade) {
+  const valorFmt = parseFloat(valor).toFixed(2);
+  function campo(id, val) {
+    const tam = val.length.toString().padStart(2, '0');
+    return id + tam + val;
+  }
+  const pix = campo("00", "01") + 
+              campo("26", campo("00", "BR.GOV.BCB.PIX") + campo("01", chave)) +
+              campo("52", "0000") +
+              campo("53", "986") +
+              campo("54", valorFmt) +
+              campo("58", "BR") +
+              campo("59", nome.substring(0,25)) +
+              campo("60", cidade.substring(0,15)) +
+              campo("62", campo("05", "***"));
+  
+  const payloadComCrc = pix + "6304";
+  const crc = crc16(payloadComCrc);
+  return payloadComCrc + crc;
+}
 
 fetch('/api/produtos').then(r=>r.json()).then(prods=>{
   grid.innerHTML=prods.map(p=>`<div class='bg-white p-4 rounded-xl shadow'><img src='${p.foto}' class='w-full h-48 object-cover rounded'><h3 class='font-bold mt-2'>${p.nome}</h3><p class='text-sm text-gray-500'>${p.descricao}</p><p class='text-green-600 font-bold text-xl'>R$ ${p.preco_final}</p><p class='text-xs text-gray-400'>Base R$ ${p.preco_base} + extras</p><button onclick='comprar(${p.id}, ${p.preco_final})' class='bg-blue-600 text-white w-full py-2 rounded mt-2'>Comprar Prótese</button></div>`).join('');
 });
 
 let codigoPixAtual = "";
-
 function comprar(id, preco){
   const nome=prompt('Seu nome:'); 
   const tel=prompt('Seu WhatsApp:');
@@ -39,19 +73,11 @@ function comprar(id, preco){
 function mostrarPix(valor){
   document.getElementById('pixValor').innerText = `R$ ${valor}`;
   document.getElementById('pixChaveTxt').innerText = CHAVE_PIX;
-  // payload pix simples + qr via api gratuita
-  codigoPixAtual = `00020126360014BR.GOV.BCB.PIX0114${CHAVE_PIX}520400005303986540${valor}.005802BR5913${NOME_PIX}6009${CIDADE_PIX}62070503***6304`;
+  codigoPixAtual = gerarPix(CHAVE_PIX, valor, NOME_PIX, CIDADE_PIX);
   let qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(codigoPixAtual)}`;
   document.getElementById('qrPix').src = qrUrl;
   document.getElementById('pixModal').classList.remove('hidden');
 }
-
-function copiarPix(){
-  navigator.clipboard.writeText(codigoPixAtual);
-  alert('Código PIX copiado! Cola no seu banco.');
-}
-function fecharPix(){
-  document.getElementById('pixModal').classList.add('hidden');
-  location.href='/cliente.html';
-}
-</script></body></html>
+function copiarPix(){ navigator.clipboard.writeText(codigoPixAtual); alert('Código PIX copiado!'); }
+function fecharPix(){ document.getElementById('pixModal').classList.add('hidden'); location.href='/cliente.html'; }
+</script>
