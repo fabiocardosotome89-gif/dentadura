@@ -3,16 +3,26 @@
 <div class='text-center my-4 flex justify-center gap-2'><a href='/cliente.html' class='bg-blue-600 text-white px-6 py-2 rounded-full'>👤 Área Cliente</a><a href='/admin.html' class='bg-black text-white px-6 py-2 rounded-full'>🔧 Admin</a></div>
 <div id='grid' class='grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto'></div>
 
+<!-- MODAL CADASTRO -->
+<div id="formModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-2xl p-6 max-w-sm w-full">
+    <h2 class="text-xl font-bold text-center">👤 Seus dados</h2>
+    <input id="fNome" placeholder="Seu nome completo" class="w-full border p-3 rounded-xl mt-4">
+    <input id="fTel" placeholder="Seu WhatsApp (219...)" class="w-full border p-3 rounded-xl mt-2">
+    <button id="btnConfirmar" class="mt-4 bg-blue-600 text-white w-full py-3 rounded-xl font-bold">Gerar PIX</button>
+    <button onclick="fecharForm()" class="mt-2 w-full py-2 text-gray-500">Cancelar</button>
+  </div>
+</div>
+
 <!-- MODAL PIX -->
 <div id="pixModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
   <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
     <h2 class="text-xl font-bold">💰 Pague com PIX</h2>
     <p id="pixValor" class="text-green-600 font-bold text-2xl mt-2"></p>
     <img id="qrPix" src="" class="mx-auto mt-3 w-56 h-56 border p-2 bg-white rounded-xl">
-    <p class="text-xs mt-2">Chave: <span id="pixChaveTxt"></span></p>
-    <p class="text-xs text-gray-500 mt-1">Escaneie no app do banco</p>
+    <p class="text-xs mt-2">Chave: +5521987841137</p>
     <button onclick="copiarPix()" class="mt-3 bg-green-600 text-white px-6 py-2 rounded-full w-full">📋 Copiar código PIX</button>
-    <button onclick="fecharPix()" class="mt-2 bg-gray-100 px-6 py-2 rounded-full w-full">Depois vou em Área Cliente</button>
+    <button onclick="fecharPix()" class="mt-2 bg-blue-600 text-white px-6 py-2 rounded-full w-full">Já paguei, ir pra Área Cliente</button>
   </div>
 </div>
 
